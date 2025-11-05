@@ -1,0 +1,30 @@
+# Streamlit Configuration for Local Web Page Execution
+# This configuration ensures the app runs locally by default
+
+[server]
+# Bind to localhost only - prevents accidental network exposure
+address = "localhost"
+# Default port
+port = 8501
+# Allow browser to open automatically (set to false only when --server-headless is used)
+headless = false
+# Enable CORS for local development if needed
+enableCORS = false
+enableXsrfProtection = true
+
+[browser]
+# Automatically gather usage stats (disabled for privacy)
+gatherUsageStats = false
+# Server address to connect to when browser opens
+serverAddress = "localhost"
+# Server port
+serverPort = 8501
+
+[theme]
+# Optional: Set a clean default theme
+primaryColor = "#1f77b4"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f0f2f6"
+textColor = "#262730"
+font = "sans serif"
+

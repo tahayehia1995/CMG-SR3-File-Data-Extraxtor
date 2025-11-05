@@ -1,0 +1,41 @@
+# Streamlit Web Application Dependencies
+# For SR3 Data Extractor and Visualizer Web App
+# All dependencies required for portable deployment
+
+# Web Framework
+streamlit>=1.28.0
+
+# Core Data Processing
+numpy>=1.21.0
+pandas>=1.3.0
+h5py>=3.7.0
+
+# Visualization
+matplotlib>=3.5.0
+
+# Core Module Dependencies (required for interactive_sr3_extractor and interactive_h5_visualizer)
+# Note: ipywidgets and ipython are imported by core modules but not used in Streamlit runtime
+# Including them ensures modules can be imported without errors
+ipython>=7.0.0  # Required for core module imports
+ipywidgets>=7.6.0  # Required for core module imports
+
+# File Handling (built-in pathlib for Python 3.6+, pathlib2 for older versions)
+pathlib2>=2.3.7; python_version < '3.6'
+
+# System Libraries (all built-in, but listed for reference)
+# multiprocessing - built-in
+# datetime - built-in
+# collections - built-in
+# glob - built-in
+# os - built-in
+# warnings - built-in
+# sys - built-in
+# tempfile - built-in
+# io - built-in
+
+# Optional but recommended
+tqdm>=4.62.0  # Progress bars (if needed for command-line output)
+
+# Internet Tunneling (optional - for public access without router configuration)
+pyngrok>=5.0.0  # Python wrapper for ngrok tunneling service (optional)
+

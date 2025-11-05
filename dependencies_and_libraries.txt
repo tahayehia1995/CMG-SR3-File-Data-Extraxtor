@@ -1,0 +1,125 @@
+CMG SR3 Data Processing - Libraries and Dependencies
+========================================================
+
+Project Description:
+-------------------
+Interactive SR3 Data Extractor and Visualizer for batch processing CMG (Computer Modelling Group) 
+reservoir simulation data. This project provides Jupyter notebook compatible tools for extracting 
+and visualizing spatial properties and time series data from multiple .sr3 files.
+
+Core Dependencies:
+=================
+
+1. Core Python Libraries (Built-in):
+   ----------------------------------
+   - os                    : Operating system interface for file and directory operations
+   - glob                  : Unix style pathname pattern expansion for file searching
+   - pathlib               : Object-oriented filesystem path handling (Path class)
+   - warnings              : Warning control and filtering
+   - datetime              : Date and time manipulation (datetime, timedelta)
+
+2. Data Processing Libraries:
+   ---------------------------
+   - numpy (np)            : Numerical computing library for array operations and mathematical functions
+                            Used for: Array manipulations, mathematical operations, data reshaping
+   
+   - pandas (pd)           : Data analysis and manipulation library
+                            Used for: Data frames, CSV operations, data cleaning
+   
+   - h5py                  : Interface to HDF5 library for handling large datasets
+                            Used for: Reading/writing .h5 files, accessing CMG SR3 data structure
+
+3. Visualization Libraries:
+   -------------------------
+   - matplotlib.pyplot (plt) : Plotting library for creating static, animated, and interactive visualizations
+                               Used for: Creating spatial plots, time series plots, data visualization
+   
+   - plotly                  : Interactive plotting library for web-based visualizations
+                               Used for: 3D interactive reservoir visualization, temporal animations
+
+4. Interactive UI Libraries:
+   -------------------------
+   - ipywidgets (widgets)  : Interactive HTML widgets for Jupyter notebooks
+                            Used for: Creating interactive dashboards, sliders, dropdowns, buttons
+   
+   - IPython.display       : Rich display system for Jupyter notebooks
+                            Used for: display(), clear_output(), HTML() functions for UI rendering
+
+Installation Commands:
+=====================
+
+Using pip:
+----------
+pip install numpy
+pip install pandas  
+pip install h5py
+pip install matplotlib
+pip install plotly
+pip install ipywidgets
+
+Using conda:
+------------
+conda install numpy
+conda install pandas
+conda install h5py
+conda install matplotlib
+conda install plotly
+conda install ipywidgets
+
+Alternative - Install all at once:
+----------------------------------
+pip install numpy pandas h5py matplotlib plotly ipywidgets
+
+Or using conda:
+conda install numpy pandas h5py matplotlib plotly ipywidgets
+
+System Requirements:
+===================
+- Python 3.7 or higher
+- Jupyter Notebook or JupyterLab (for interactive widgets)
+- Windows/Linux/macOS compatible
+- Sufficient memory for large HDF5 files (depends on data size)
+
+Project Files:
+=============
+1. interactive_sr3_extractor.py    : Main batch extraction tool for SR3 data
+2. interactive_h5_visualizer.py    : Interactive visualization dashboard for processed H5 files
+3. SR3_Analysis_and_Processing_Documentation.md : Comprehensive documentation
+
+Key Features Requiring These Dependencies:
+=========================================
+- Batch processing of multiple CMG .sr3 files (h5py, numpy, pandas)
+- Interactive Jupyter widgets for user interface (ipywidgets, IPython.display)
+- 2D spatial data visualization (matplotlib, numpy)
+- 3D interactive reservoir visualization (plotly, numpy)
+- Temporal animation controls (plotly, ipywidgets)
+- Time series data plotting (matplotlib, pandas)
+- HDF5 file format for efficient data storage (h5py)
+- Date/time handling for simulation timesteps (datetime)
+- File system operations for batch processing (os, glob, pathlib)
+
+Optional Enhancements:
+=====================
+For enhanced functionality, consider these additional libraries:
+- seaborn         : Statistical data visualization (prettier plots)
+- scipy           : Scientific computing (if advanced analysis needed)
+- tqdm            : Progress bars for long-running operations
+
+Jupyter Environment Setup:
+==========================
+1. Install Jupyter: pip install jupyter
+2. Enable widget extensions: jupyter nbextension enable --py widgetsnbextension
+3. For JupyterLab: pip install jupyterlab-widgets
+
+Usage Notes:
+============
+- This project is designed to work in Jupyter notebook environment
+- The interactive widgets require a Jupyter frontend to display properly
+- All dependencies are widely available and well-maintained
+- The project uses standard scientific Python stack for reliability
+
+Version Compatibility:
+=====================
+- Tested with Python 3.8+
+- Compatible with both Jupyter Notebook and JupyterLab
+- Works on Windows, macOS, and Linux systems 
