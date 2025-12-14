@@ -45,14 +45,6 @@ if _src_dir.exists():
 # Import streamlit first so we can show errors
 import streamlit as st
 
-# Set page config early (must be first Streamlit command)
-st.set_page_config(
-    page_title="SR3 Data Processor",
-    page_icon="📊",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
 try:
     # Import the app module - this executes all module-level code
     from cmg_sr3_files_data_processor.app import main
