@@ -10,7 +10,8 @@ import os
 import sys
 import h5py
 import numpy as np
-from io import StringIO
+from io import StringIO, BytesIO
+import zipfile
 from cmg_sr3_files_data_processor.interactive_sr3_extractor import (
     BatchSR3Extractor, 
     analyze_common_dates_across_files,
@@ -819,11 +820,48 @@ class StreamlitSR3Extractor:
         st.markdown("---")
         st.subheader("📦 Extracted H5 Files Summary")
         
+        # Add download all button at the top
+        zip_data, zip_filename = self._create_zip_download(output_folder)
+        if zip_data:
+            total_files = len(spatial_files) + len(timeseries_files) + len(other_files)
+            zip_size_mb = len(zip_data) / (1024 * 1024)
+            
+            col1, col2 = st.columns([2, 1])
+            with col1:
+                st.download_button(
+                    label=f"📦 Download All Files ({total_files} files, {zip_size_mb:.2f} MB)",
+                    data=zip_data,
+                    file_name=zip_filename,
+                    mime="application/zip",
+                    type="primary",
+                    help=f"Download all {total_files} extracted H5 files as a ZIP archive"
+                )
+            with col2:
+                st.caption(f"📁 Location: `{output_folder.resolve()}`")
+        
         # Display spatial files
         if spatial_files:
             st.markdown("### 📊 Spatial Property Files")
             for info in spatial_files:
-                with st.expander(f"📁 {info['filename']} ({info['file_size_mb']:.2f} MB)", expanded=False):
+                file_path = output_folder / info['filename']
+                file_data = self._read_file_for_download(file_path)
+                
+                # Create columns for file header with download button
+                header_col1, header_col2 = st.columns([3, 1])
+                with header_col1:
+                    expander_label = f"📁 {info['filename']} ({info['file_size_mb']:.2f} MB)"
+                with header_col2:
+                    if file_data:
+                        st.download_button(
+                            label="⬇️ Download",
+                            data=file_data,
+                            file_name=info['filename'],
+                            mime="application/x-hdf5",
+                            key=f"download_spatial_{info['filename']}",
+                            help=f"Download {info['filename']}"
+                        )
+                
+                with st.expander(expander_label, expanded=False):
                     col1, col2 = st.columns(2)
                     
                     with col1:
@@ -883,7 +921,25 @@ with h5py.File('{info['filename']}', 'r') as f:
         if timeseries_files:
             st.markdown("### 🛢️ Time Series Files")
             for info in timeseries_files:
-                with st.expander(f"📁 {info['filename']} ({info['file_size_mb']:.2f} MB)", expanded=False):
+                file_path = output_folder / info['filename']
+                file_data = self._read_file_for_download(file_path)
+                
+                # Create columns for file header with download button
+                header_col1, header_col2 = st.columns([3, 1])
+                with header_col1:
+                    expander_label = f"📁 {info['filename']} ({info['file_size_mb']:.2f} MB)"
+                with header_col2:
+                    if file_data:
+                        st.download_button(
+                            label="⬇️ Download",
+                            data=file_data,
+                            file_name=info['filename'],
+                            mime="application/x-hdf5",
+                            key=f"download_timeseries_{info['filename']}",
+                            help=f"Download {info['filename']}"
+                        )
+                
+                with st.expander(expander_label, expanded=False):
                     col1, col2 = st.columns(2)
                     
                     with col1:
@@ -949,7 +1005,25 @@ with h5py.File('{info['filename']}', 'r') as f:
         if other_files:
             st.markdown("### 📁 Other Files")
             for info in other_files:
-                with st.expander(f"📁 {info['filename']} ({info['file_size_mb']:.2f} MB)", expanded=False):
+                file_path = output_folder / info['filename']
+                file_data = self._read_file_for_download(file_path)
+                
+                # Create columns for file header with download button
+                header_col1, header_col2 = st.columns([3, 1])
+                with header_col1:
+                    expander_label = f"📁 {info['filename']} ({info['file_size_mb']:.2f} MB)"
+                with header_col2:
+                    if file_data:
+                        st.download_button(
+                            label="⬇️ Download",
+                            data=file_data,
+                            file_name=info['filename'],
+                            mime="application/x-hdf5",
+                            key=f"download_other_{info['filename']}",
+                            help=f"Download {info['filename']}"
+                        )
+                
+                with st.expander(expander_label, expanded=False):
                     st.write(f"**Type:** {info['file_type'] or 'Other'}")
                     if info['data_shape']:
                         st.write(f"**Shape:** {info['data_shape']}")
@@ -959,6 +1033,61 @@ with h5py.File('{info['filename']}', 'r') as f:
                     # HDF5 Structure
                     with st.expander("🗂️ HDF5 File Structure", expanded=False):
                         st.code('\n'.join(info['structure']), language='text')
+    
+    def _read_file_for_download(self, file_path):
+        """
+        Read a file into memory for download
+        
+        Args:
+            file_path: Path to the file to read
+            
+        Returns:
+            bytes: File contents, or None if error
+        """
+        try:
+            file_path = Path(file_path)
+            if not file_path.exists():
+                return None
+            
+            # For large files, read in chunks to avoid memory issues
+            file_size_mb = file_path.stat().st_size / (1024 * 1024)
+            if file_size_mb > 500:
+                st.warning(f"⚠️ Large file ({file_size_mb:.2f} MB). Download may take time.")
+            
+            with open(file_path, 'rb') as f:
+                return f.read()
+        except Exception as e:
+            st.error(f"Error reading file {file_path}: {str(e)}")
+            return None
+    
+    def _create_zip_download(self, output_folder):
+        """
+        Create a zip archive of all H5 files in the output folder
+        
+        Args:
+            output_folder: Path to folder containing H5 files
+            
+        Returns:
+            tuple: (zip_bytes, zip_filename) or (None, None) if error
+        """
+        try:
+            output_folder = Path(output_folder)
+            h5_files = list(output_folder.glob('*.h5'))
+            
+            if not h5_files:
+                return None, None
+            
+            zip_buffer = BytesIO()
+            with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                for h5_file in h5_files:
+                    zip_file.write(h5_file, h5_file.name)
+            
+            zip_buffer.seek(0)
+            zip_filename = f"sr3_extracted_files_{output_folder.name}.zip"
+            return zip_buffer.getvalue(), zip_filename
+        except Exception as e:
+            st.error(f"Error creating zip file: {str(e)}")
+            return None, None
     
     def cleanup(self):
         """Clean up temporary files"""

@@ -888,10 +888,16 @@ def step2_configure():
     
     # Output Configuration
     st.subheader("💾 Output Configuration")
+    
+    # Show default path prominently
+    default_output_path = Path.home() / "sr3_output"
+    st.info(f"📁 **Default Output Path:** `{default_output_path.resolve()}`")
+    st.caption("💡 **Note:** Files will be saved to this location. After extraction, you can download them directly from the app.")
+    
     output_folder_input = st.text_input(
         "Output Folder Path",
-        value=str(Path.home() / "sr3_output"),
-        help="Path where extracted H5 files will be saved"
+        value=str(default_output_path),
+        help="Path where extracted H5 files will be saved. You can change this to any valid directory path."
     )
     
     output_prefix_spatial = st.text_input(
@@ -988,7 +994,9 @@ def step3_extract():
     output_folder.mkdir(parents=True, exist_ok=True)
     st.session_state.output_folder = output_folder
     
-    st.info(f"Output folder: {output_folder}")
+    # Display output folder prominently
+    st.success(f"📁 **Files will be saved to:** `{output_folder.resolve()}`")
+    st.caption("💡 **Tip:** After extraction completes, you can download all files using the download buttons below.")
     
     # Extract button
     if st.button("🚀 Start Extraction", type="primary"):
@@ -1022,7 +1030,42 @@ def step3_extract():
         if success_spatial and success_timeseries:
             st.success("✅ Extraction completed successfully!")
             
-            # Display H5 file summary
+            # Display download section
+            st.markdown("---")
+            st.subheader("📥 Download Extracted Files")
+            
+            # Create zip download button
+            h5_files = list(output_folder.glob('*.h5'))
+            if h5_files:
+                total_size_mb = sum(f.stat().st_size for f in h5_files) / (1024 * 1024)
+                
+                # Create zip file in memory
+                import zipfile
+                import io
+                
+                zip_buffer = io.BytesIO()
+                with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                    for h5_file in h5_files:
+                        zip_file.write(h5_file, h5_file.name)
+                
+                zip_buffer.seek(0)
+                zip_size_mb = len(zip_buffer.getvalue()) / (1024 * 1024)
+                
+                st.download_button(
+                    label=f"📦 Download All Files ({len(h5_files)} files, {zip_size_mb:.2f} MB)",
+                    data=zip_buffer.getvalue(),
+                    file_name=f"sr3_extracted_files_{output_folder.name}.zip",
+                    mime="application/zip",
+                    type="primary",
+                    help=f"Download all {len(h5_files)} extracted H5 files as a ZIP archive"
+                )
+                
+                if total_size_mb > 200:
+                    st.warning(f"⚠️ **Large files detected:** Total size is {total_size_mb:.2f} MB. Download may take some time.")
+            else:
+                st.warning("No H5 files found in output folder.")
+            
+            # Display H5 file summary (which will also have individual download buttons)
             extractor.display_h5_file_summary(output_folder)
             
             st.session_state.step = 4
