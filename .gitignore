@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+sr3dp_venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+*.h5
+*.sr3
+!SR3_files/**/*.sr3
+
+# Output directories
+sr3_output/
+output/
+
+# Streamlit
+.streamlit/
+
