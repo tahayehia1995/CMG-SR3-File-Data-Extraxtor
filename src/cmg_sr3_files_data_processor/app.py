@@ -56,16 +56,31 @@ if _src_dir and _src_dir.exists():
     if _src_str not in sys.path:
         sys.path.insert(0, _src_str)
 
+# Import Streamlit first so we can show errors if imports fail
 import streamlit as st
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from cmg_sr3_files_data_processor.streamlit_extractor import (
-    StreamlitSR3Extractor,
-    inspect_h5_structure,
-    inspect_sr3_structure,
-)
-from cmg_sr3_files_data_processor.streamlit_visualizer import StreamlitH5Visualizer
+
+# Try to import other dependencies with error handling
+try:
+    import numpy as np
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    from cmg_sr3_files_data_processor.streamlit_extractor import (
+        StreamlitSR3Extractor,
+        inspect_h5_structure,
+        inspect_sr3_structure,
+    )
+    from cmg_sr3_files_data_processor.streamlit_visualizer import StreamlitH5Visualizer
+except ImportError as e:
+    st.error(f"❌ Import Error: {str(e)}")
+    st.code(f"Python path: {sys.path[:5]}")
+    st.code(f"Looking for: cmg_sr3_files_data_processor")
+    st.code(f"Source directory attempted: {_src_dir}")
+    st.stop()
+except Exception as e:
+    st.error(f"❌ Unexpected Error: {str(e)}")
+    import traceback
+    st.code(traceback.format_exc())
+    st.stop()
 
 # Page configuration
 st.set_page_config(
