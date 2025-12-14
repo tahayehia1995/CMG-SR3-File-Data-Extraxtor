@@ -11,7 +11,7 @@ import sys
 import h5py
 import numpy as np
 from io import StringIO
-from .interactive_sr3_extractor import (
+from cmg_sr3_files_data_processor.interactive_sr3_extractor import (
     BatchSR3Extractor, 
     analyze_common_dates_across_files,
     filter_yearly_dates,

@@ -9,9 +9,17 @@ from pathlib import Path
 
 # Ensure the src/ directory is in Python path so absolute package imports work
 # even when Streamlit executes this file directly.
-_src_dir = Path(__file__).resolve().parents[1]
-if str(_src_dir) not in sys.path:
-    sys.path.insert(0, str(_src_dir))
+# Handle both local execution and Streamlit Cloud execution
+try:
+    _src_dir = Path(__file__).resolve().parents[1]
+    if _src_dir.exists() and str(_src_dir) not in sys.path:
+        sys.path.insert(0, str(_src_dir))
+except Exception:
+    # Fallback: try to find src directory relative to current working directory
+    _current_dir = Path.cwd()
+    _src_dir = _current_dir / "src"
+    if _src_dir.exists() and str(_src_dir) not in sys.path:
+        sys.path.insert(0, str(_src_dir))
 
 import streamlit as st
 import numpy as np
