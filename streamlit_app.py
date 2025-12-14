@@ -5,6 +5,7 @@ It imports the main app from the package structure.
 """
 
 import sys
+import os
 from pathlib import Path
 
 # Add src directory to Python path so we can import the package
@@ -14,7 +15,13 @@ if str(src_dir) not in sys.path:
 
 # Import and run the main app
 # Streamlit Cloud will execute this file, so we call main() directly
-from cmg_sr3_files_data_processor.app import main
-
-main()
+try:
+    from cmg_sr3_files_data_processor.app import main
+    main()
+except Exception as e:
+    # If there's an import error, show it in Streamlit
+    import streamlit as st
+    st.error(f"Error starting application: {str(e)}")
+    st.exception(e)
+    raise
 
