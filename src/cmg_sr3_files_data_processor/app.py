@@ -15,11 +15,24 @@ _src_dir = None
 # Strategy 1: From __file__ location (when run as script)
 try:
     _file_path = Path(__file__).resolve()
-    _src_dir = _file_path.parents[1]  # Go up from app.py -> cmg_sr3_files_data_processor -> src
-    if not _src_dir.exists() or _src_dir.name != 'src':
-        _src_dir = None
+    # app.py is at: src/cmg_sr3_files_data_processor/app.py
+    # parents[0] = src/cmg_sr3_files_data_processor/
+    # parents[1] = src/
+    _src_dir = _file_path.parents[1]
+    # Verify this is actually the src directory
+    if _src_dir.exists() and _src_dir.name == 'src':
+        # Good, we found it
+        pass
+    else:
+        # Try parents[2] in case we're deeper
+        _src_dir = _file_path.parents[2] if len(_file_path.parts) > 2 else None
+        if _src_dir and _src_dir.exists() and (_src_dir / "cmg_sr3_files_data_processor" / "app.py").exists():
+            # Found it at a different level
+            pass
+        else:
+            _src_dir = None
 except Exception:
-    pass
+    _src_dir = None
 
 # Strategy 2: From current working directory (Streamlit Cloud default)
 if _src_dir is None or not _src_dir.exists():
@@ -72,9 +85,17 @@ try:
     from cmg_sr3_files_data_processor.streamlit_visualizer import StreamlitH5Visualizer
 except ImportError as e:
     st.error(f"❌ Import Error: {str(e)}")
-    st.code(f"Python path: {sys.path[:5]}")
-    st.code(f"Looking for: cmg_sr3_files_data_processor")
+    st.write("**Debug Information:**")
+    st.code(f"Python version: {sys.version}")
+    st.code(f"Python path (first 10): {sys.path[:10]}")
+    st.code(f"Current working directory: {os.getcwd()}")
+    st.code(f"__file__: {__file__}")
     st.code(f"Source directory attempted: {_src_dir}")
+    st.code(f"Source exists: {_src_dir.exists() if _src_dir else False}")
+    if _src_dir and _src_dir.exists():
+        st.code(f"Contents of src: {list(_src_dir.iterdir())[:10]}")
+    import traceback
+    st.code(traceback.format_exc())
     st.stop()
 except Exception as e:
     st.error(f"❌ Unexpected Error: {str(e)}")
