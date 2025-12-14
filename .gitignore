@@ -33,5 +33,6 @@ sr3_output/
 output/
 
 # Streamlit
-.streamlit/
+.streamlit/*
+!.streamlit/config.toml/
 
