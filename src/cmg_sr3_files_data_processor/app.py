@@ -1069,8 +1069,9 @@ def step3_extract():
             # Display H5 file summary (which will also have individual download buttons)
             extractor.display_h5_file_summary(output_folder)
             
-            st.session_state.step = 4
-            st.rerun()
+            # Don't auto-advance - let user manually proceed to visualization
+            # st.session_state.step = 4
+            # st.rerun()
         else:
             st.error("❌ Extraction completed with errors. Please check the output above.")
     
