@@ -1050,13 +1050,40 @@ with h5py.File('{info['filename']}', 'r') as f:
             if not file_path.exists():
                 return None
             
-            # For large files, read in chunks to avoid memory issues
             file_size_mb = file_path.stat().st_size / (1024 * 1024)
-            if file_size_mb > 500:
-                st.warning(f"⚠️ Large file ({file_size_mb:.2f} MB). Download may take time.")
+            file_size_gb = file_size_mb / 1024
             
+            # Streamlit Cloud limitations:
+            # - Max memory: 2.7GB
+            # - Download button practical limit: ~500MB-1GB
+            # - Large files (>1GB) may fail or timeout
+            
+            if file_size_gb > 1:
+                st.error(f"❌ **File too large for download:** {file_size_gb:.2f} GB")
+                st.warning("""
+                **Streamlit Cloud Limitations:**
+                - Maximum memory: 2.7GB
+                - Download button limit: ~500MB-1GB
+                - Files larger than 1GB cannot be downloaded directly through the app
+                
+                **Recommended Solutions:**
+                1. **Use local processing:** Run the app locally (`run_app.bat`) for large files
+                2. **Cloud storage:** Upload files to AWS S3, Google Cloud Storage, or similar
+                3. **Split data:** Process files in smaller batches
+                4. **Direct server access:** Use SSH/SFTP to access files on Streamlit Cloud server
+                """)
+                return None
+            
+            if file_size_mb > 500:
+                st.warning(f"⚠️ **Large file:** {file_size_mb:.2f} MB. Download may take time or fail.")
+            
+            # Read file into memory
             with open(file_path, 'rb') as f:
                 return f.read()
+        except MemoryError:
+            st.error(f"❌ **Out of memory:** File {file_path.name} is too large to load into memory.")
+            st.info("💡 **Tip:** For files larger than 1GB, use local processing or cloud storage.")
+            return None
         except Exception as e:
             st.error(f"Error reading file {file_path}: {str(e)}")
             return None
@@ -1078,6 +1105,30 @@ with h5py.File('{info['filename']}', 'r') as f:
             if not h5_files:
                 return None, None
             
+            # Check total size
+            total_size_mb = sum(f.stat().st_size for f in h5_files) / (1024 * 1024)
+            total_size_gb = total_size_mb / 1024
+            
+            # Warn if total size is too large
+            if total_size_gb > 1:
+                st.error(f"❌ **Total files too large for ZIP download:** {total_size_gb:.2f} GB")
+                st.warning("""
+                **Streamlit Cloud Limitations:**
+                - Maximum memory: 2.7GB
+                - ZIP download limit: ~500MB-1GB
+                - Large archives cannot be created/downloaded directly
+                
+                **Recommended Solutions:**
+                1. **Download files individually** (if each file < 1GB)
+                2. **Use local processing** for large datasets
+                3. **Use cloud storage** (AWS S3, Google Cloud Storage)
+                4. **Process in smaller batches**
+                """)
+                return None, None
+            
+            if total_size_mb > 500:
+                st.warning(f"⚠️ **Large archive:** {total_size_mb:.2f} MB. ZIP creation may take time.")
+            
             zip_buffer = BytesIO()
             with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
                 for h5_file in h5_files:
@@ -1085,7 +1136,16 @@ with h5py.File('{info['filename']}', 'r') as f:
             
             zip_buffer.seek(0)
             zip_filename = f"sr3_extracted_files_{output_folder.name}.zip"
+            zip_size_mb = len(zip_buffer.getvalue()) / (1024 * 1024)
+            
+            if zip_size_mb > 500:
+                st.warning(f"⚠️ **Large ZIP file:** {zip_size_mb:.2f} MB. Download may fail.")
+            
             return zip_buffer.getvalue(), zip_filename
+        except MemoryError:
+            st.error("❌ **Out of memory:** Files are too large to create ZIP archive.")
+            st.info("💡 **Tip:** For large datasets, use local processing or download files individually.")
+            return None, None
         except Exception as e:
             st.error(f"Error creating zip file: {str(e)}")
             return None, None

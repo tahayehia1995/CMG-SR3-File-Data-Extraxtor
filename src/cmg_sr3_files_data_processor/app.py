@@ -1038,31 +1038,50 @@ def step3_extract():
             h5_files = list(output_folder.glob('*.h5'))
             if h5_files:
                 total_size_mb = sum(f.stat().st_size for f in h5_files) / (1024 * 1024)
+                total_size_gb = total_size_mb / 1024
                 
-                # Create zip file in memory
-                import zipfile
-                import io
-                
-                zip_buffer = io.BytesIO()
-                with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-                    for h5_file in h5_files:
-                        zip_file.write(h5_file, h5_file.name)
-                
-                zip_buffer.seek(0)
-                zip_size_mb = len(zip_buffer.getvalue()) / (1024 * 1024)
-                
-                st.download_button(
-                    label=f"📦 Download All Files ({len(h5_files)} files, {zip_size_mb:.2f} MB)",
-                    data=zip_buffer.getvalue(),
-                    file_name=f"sr3_extracted_files_{output_folder.name}.zip",
-                    mime="application/zip",
-                    type="primary",
-                    key=f"download_all_step3_{output_folder.name}",
-                    help=f"Download all {len(h5_files)} extracted H5 files as a ZIP archive"
-                )
-                
-                if total_size_mb > 200:
-                    st.warning(f"⚠️ **Large files detected:** Total size is {total_size_mb:.2f} MB. Download may take some time.")
+                # Check for very large files
+                if total_size_gb > 1:
+                    st.error(f"❌ **Files too large for download:** {total_size_gb:.2f} GB total")
+                    st.warning("""
+                    **Streamlit Cloud Limitations:**
+                    - Maximum memory: 2.7GB
+                    - Download limit: ~500MB-1GB per file
+                    - Files larger than 1GB cannot be downloaded through the web interface
+                    
+                    **Recommended Solutions:**
+                    1. **Run locally:** Use `run_app.bat` on your PC for large files
+                    2. **Cloud storage:** Upload to AWS S3, Google Cloud Storage, or Azure Blob
+                    3. **Split processing:** Process files in smaller batches
+                    4. **Direct access:** Use SSH/SFTP to access files on Streamlit Cloud server
+                    """)
+                else:
+                    # Create zip file in memory
+                    import zipfile
+                    import io
+                    
+                    zip_buffer = io.BytesIO()
+                    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                        for h5_file in h5_files:
+                            zip_file.write(h5_file, h5_file.name)
+                    
+                    zip_buffer.seek(0)
+                    zip_size_mb = len(zip_buffer.getvalue()) / (1024 * 1024)
+                    
+                    st.download_button(
+                        label=f"📦 Download All Files ({len(h5_files)} files, {zip_size_mb:.2f} MB)",
+                        data=zip_buffer.getvalue(),
+                        file_name=f"sr3_extracted_files_{output_folder.name}.zip",
+                        mime="application/zip",
+                        type="primary",
+                        key=f"download_all_step3_{output_folder.name}",
+                        help=f"Download all {len(h5_files)} extracted H5 files as a ZIP archive"
+                    )
+                    
+                    if total_size_mb > 200:
+                        st.warning(f"⚠️ **Large files detected:** Total size is {total_size_mb:.2f} MB. Download may take some time.")
+                    if total_size_mb > 500:
+                        st.warning("⚠️ **Very large files:** Downloads over 500MB may fail on Streamlit Cloud. Consider using local processing.")
             else:
                 st.warning("No H5 files found in output folder.")
             
