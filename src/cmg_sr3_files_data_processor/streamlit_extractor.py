@@ -834,6 +834,7 @@ class StreamlitSR3Extractor:
                     file_name=zip_filename,
                     mime="application/zip",
                     type="primary",
+                    key=f"download_all_zip_{output_folder.name}",
                     help=f"Download all {total_files} extracted H5 files as a ZIP archive"
                 )
             with col2:

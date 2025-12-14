@@ -1057,6 +1057,7 @@ def step3_extract():
                     file_name=f"sr3_extracted_files_{output_folder.name}.zip",
                     mime="application/zip",
                     type="primary",
+                    key=f"download_all_step3_{output_folder.name}",
                     help=f"Download all {len(h5_files)} extracted H5 files as a ZIP archive"
                 )
                 
