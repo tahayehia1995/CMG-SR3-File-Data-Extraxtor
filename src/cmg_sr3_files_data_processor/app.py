@@ -8,18 +8,53 @@ import os
 from pathlib import Path
 
 # Ensure the src/ directory is in Python path so absolute package imports work
-# even when Streamlit executes this file directly.
 # Handle both local execution and Streamlit Cloud execution
+_src_dir = None
+
+# Try multiple strategies to find the src directory
+# Strategy 1: From __file__ location (when run as script)
 try:
-    _src_dir = Path(__file__).resolve().parents[1]
-    if _src_dir.exists() and str(_src_dir) not in sys.path:
-        sys.path.insert(0, str(_src_dir))
+    _file_path = Path(__file__).resolve()
+    _src_dir = _file_path.parents[1]  # Go up from app.py -> cmg_sr3_files_data_processor -> src
+    if not _src_dir.exists() or _src_dir.name != 'src':
+        _src_dir = None
 except Exception:
-    # Fallback: try to find src directory relative to current working directory
-    _current_dir = Path.cwd()
-    _src_dir = _current_dir / "src"
-    if _src_dir.exists() and str(_src_dir) not in sys.path:
-        sys.path.insert(0, str(_src_dir))
+    pass
+
+# Strategy 2: From current working directory (Streamlit Cloud default)
+if _src_dir is None or not _src_dir.exists():
+    try:
+        _cwd = Path.cwd()
+        # Check if we're in the repo root
+        if (_cwd / "src" / "cmg_sr3_files_data_processor" / "app.py").exists():
+            _src_dir = _cwd / "src"
+        # Check if we're already in src directory
+        elif (_cwd / "cmg_sr3_files_data_processor" / "app.py").exists():
+            _src_dir = _cwd
+    except Exception:
+        pass
+
+# Strategy 3: Try common Streamlit Cloud paths
+if _src_dir is None or not _src_dir.exists():
+    try:
+        # Streamlit Cloud might mount at /mount/src/repo-name
+        _possible_paths = [
+            Path("/mount/src/cmg-sr3-file-data-extraxtor/src"),
+            Path("/mount/src/cmg-sr3-file-data-extraxtor"),
+            Path.cwd() / "src",
+        ]
+        for _path in _possible_paths:
+            if _path.exists() and (_path / "cmg_sr3_files_data_processor" / "app.py").exists():
+                _src_dir = _path
+                break
+    except Exception:
+        pass
+
+# Add to Python path if found
+if _src_dir and _src_dir.exists():
+    _src_str = str(_src_dir)
+    if _src_str not in sys.path:
+        sys.path.insert(0, _src_str)
 
 import streamlit as st
 import numpy as np
